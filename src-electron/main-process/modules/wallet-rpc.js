@@ -1571,6 +1571,36 @@ export class WalletRPC {
   heartbeatAction(extended = false) {
     if (this.isRestarting) return;
     this.heartbeatCount = (this.heartbeatCount || 0) + 1;
+
+    // Single source of truth: the local daemon's own (independent, working)
+    // heartbeat says it's still catching up to the network tip. While that's
+    // true, wallet-rpc is busy scanning and intermittently refuses these RPCs —
+    // expected, not a fault. We can't use wallet-rpc stdout for this because its
+    // block-progress lines are redirected to --log-file, never stdout.
+    const daemonSyncingNow =
+      this.backend.daemon?.local &&
+      this.backend.daemon?.daemonResponsive &&
+      this.backend.daemon?.isDaemonSyncing;
+
+    // Drive the UI's Syncing state and keep the sync grace window fresh. Sticky
+    // until the syncPoller confirms the chain tip; guarded by !syncCompleted so
+    // we never resurrect it after this session's sync has already finished.
+    if (daemonSyncingNow && !this.syncCompleted) {
+      this.lastSyncActivityTime = Date.now();
+      if (!this.isRPCSyncing) {
+        this.isRPCSyncing = true;
+        this.sendGateway("set_wallet_data", { isRPCSyncing: true });
+      }
+    }
+
+    // The syncPoller (1s getheight) already drives progress during sync, so
+    // throttle this heavy 3-RPC heartbeat to ~every 4th beat (20s) while the
+    // daemon is catching up — this stops the repeated "Cannot connect" churn
+    // and the 15s queue drains. Forced (extended) beats always run.
+    if (daemonSyncingNow && !extended && this.heartbeatCount % 4 !== 0) {
+      return;
+    }
+
     Promise.all([
       this.sendRPC("get_address", { account_index: 0 }, 5000),
       this.sendRPC("getheight", {}, 5000),
@@ -1589,30 +1619,6 @@ export class WalletRPC {
         }
       }
 
-      // Master "mid-sync" signal. The local daemon's own (independent, still-
-      // working) heartbeat tells us it is catching up to the network tip. While
-      // that is true, wallet-rpc is busy scanning the chain and will drop in and
-      // out of responsiveness to these heartbeat RPCs — expected, not a fault.
-      // We rely on this instead of wallet-rpc stdout because on this build the
-      // block-progress lines go to --log-file, never stdout, so the stdout-based
-      // isRPCSyncing flag never fires during the initial sync.
-      const daemonSyncing =
-        this.backend.daemon?.local &&
-        this.backend.daemon?.daemonResponsive &&
-        this.backend.daemon?.isDaemonSyncing;
-
-      // Reflect daemon-level sync into the wallet's syncing flag so the UI shows
-      // a Syncing state and the existing spam-suppression engages. Sticky until
-      // the syncPoller confirms the chain tip; guarded by !syncCompleted so we
-      // never resurrect it after this session's sync has already finished.
-      if (daemonSyncing && !this.syncCompleted) {
-        this.lastSyncActivityTime = Date.now();
-        if (!this.isRPCSyncing) {
-          this.isRPCSyncing = true;
-          this.sendGateway("set_wallet_data", { isRPCSyncing: true });
-        }
-      }
-
       if (rpcFailures.length > 0) {
         this.consecutiveHeartbeatFailures = (this.consecutiveHeartbeatFailures || 0) + 1;
         const n = this.consecutiveHeartbeatFailures;
@@ -1622,7 +1628,7 @@ export class WalletRPC {
         // avoid a wall of red ERROR lines that reads as a broken wallet.
         if (n <= 3 || n % 10 === 0) {
           this.backend.sendLog(
-            daemonSyncing ? "info" : "error",
+            daemonSyncingNow ? "info" : "error",
             n > 3
               ? `Wallet-rpc still unreachable (${n} failures) — may be scanning or starting up`
               : `Wallet RPC heartbeat failures — ${rpcFailures.join("; ")}`
@@ -1721,7 +1727,7 @@ export class WalletRPC {
           // Don't toast a "reconnect" that is just sync churn — during initial
           // daemon sync wallet-rpc drops in and out of responsiveness every few
           // beats, and a positive toast each time reads as instability.
-          if (Date.now() - this.lastTxSentTime > 30000 && !daemonSyncing) {
+          if (Date.now() - this.lastTxSentTime > 30000 && !daemonSyncingNow) {
             this.backend.send("show_notification", {
               type: "positive",
               message: "Wallet reconnected",
