@@ -579,9 +579,9 @@ export class Daemon {
     let actions = [];
 
     if (this.local) {
-      actions = [this.getRPC("info", {}, { timeout: 15000 })];
+      actions = [this.getRPC("info")];
     } else {
-      actions = [this.getRPC("info", {}, { timeout: 15000 })];
+      actions = [this.getRPC("info")];
     }
 
     Promise.all(actions).then(data => {
@@ -730,8 +730,8 @@ export class Daemon {
     let actions = [];
     if (this.local) {
       actions = [
-        this.getRPC("connections", {}, { timeout: 15000 }),
-        this.getRPC("bans", {}, { timeout: 15000 })
+        this.getRPC("connections"),
+        this.getRPC("bans")
         // this.getRPC("txpool_backlog"),
       ];
     } else {
@@ -775,7 +775,7 @@ export class Daemon {
       fetching: true
     };
     this.sendGateway("set_daemon_data", { service_nodes });
-    this.getRPC("service_nodes", {}, { timeout: 20000 }).then(data => {
+    this.getRPC("service_nodes").then(data => {
       if (!data.hasOwnProperty("result")) return;
       const nodes = data.result.service_node_states;
 
@@ -928,8 +928,8 @@ export class Daemon {
   /**
    * Call one of the get_* RPC calls
    */
-  getRPC(parameter, args, options) {
-    return this.sendRPC(`get_${parameter}`, args, options);
+  getRPC(parameter, args) {
+    return this.sendRPC(`get_${parameter}`, args);
   }
 
   quit() {
