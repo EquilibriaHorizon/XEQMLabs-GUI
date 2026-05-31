@@ -996,6 +996,7 @@ export class Backend {
   // Manual daemon connection - called from Network Settings
   connectDaemon() {
     const { net_type } = this.config_data.app;
+    const dmnCfg = this.config_data.daemons[net_type];
 
     this.sendLog("info", `Connecting to daemon (${net_type})...`);
     this.send("set_app_data", {
@@ -1003,6 +1004,37 @@ export class Backend {
       daemon_connected: false
     });
 
+    // Fast path: a local daemon we pre-launched during startup is already
+    // running and we still hold its process handle. Skip the `xeqm-d --version`
+    // probe (slow on Windows, and prone to a false "binary not found" report
+    // while the daemon is actually up) and the redundant second spawn — just
+    // confirm via get_info and mark connected.
+    if (dmnCfg && dmnCfg.type === "local" && this.daemon && this.daemon.daemonProcess) {
+      this.daemon.sendRPC("get_info", {}, { timeout: 5000 }).then(data => {
+        if (!data.hasOwnProperty("error")) {
+          this.daemon.startHeartbeat();
+          this.sendLog("info", "Local daemon already running — connected without re-spawn");
+          this.send("set_app_data", { daemon_connecting: false, daemon_connected: true });
+          this.send("show_notification", {
+            type: "positive",
+            message: "Connected to daemon successfully!",
+            timeout: 3000
+          });
+        } else {
+          this.sendLog("warn", "Pre-launched daemon not responding yet — running full connect");
+          this._connectDaemonViaStart(net_type);
+        }
+      });
+      return;
+    }
+
+    this._connectDaemonViaStart(net_type);
+  }
+
+  // Full connect path: verify the binary, (re)start the daemon, then wire
+  // wallet-rpc to it. Used for remote daemons and as a fallback when the local
+  // fast path can't confirm a pre-launched daemon.
+  _connectDaemonViaStart(net_type) {
     this.daemon.checkVersion(this.config_data.app.net_type).then(version => {
       if (version) {
         this.sendLog("info", `Daemon version: ${version}`);

@@ -364,7 +364,14 @@ export class Daemon {
                     "[Daemon] Daemon info:",
                     JSON.stringify(data.result).substring(0, 200)
                   );
-                  this.daemonProcess = null; // We didn't start it, so don't track it
+                  // NOTE: Do NOT null out this.daemonProcess here. During
+                  // startup we pre-launch the local daemon and then connect
+                  // again — the second pass lands here because the port is
+                  // already open. Nulling the handle would orphan our own
+                  // daemon: quit() couldn't kill it and the next launch would
+                  // find the RPC/P2P ports "plugged" by a leftover (sometimes
+                  // stale-version) daemon. If daemonProcess is already null this
+                  // is a genuinely external daemon and it correctly stays null.
                   // Keep this.local = true so heartbeat works correctly
                   this.startHeartbeat();
                   resolve();
