@@ -109,7 +109,7 @@ jobs:
           set -euo pipefail
           TAG="${{ inputs.core_release }}"
           if [ -z "$TAG" ]; then
-            TAG="$(gh release view --repo EquilibriaHorizon/equilibria-core --json tagName --jq .tagName)"
+            TAG="$(gh release view --repo XEQMLabs/xeqm-core --json tagName --jq .tagName)"
           fi
           echo "Resolved core release tag: $TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -124,7 +124,7 @@ jobs:
           mkdir -p bin core-download
 
           gh release download "${{ steps.core.outputs.tag }}" \
-            --repo EquilibriaHorizon/equilibria-core \
+            --repo XEQMLabs/xeqm-core \
             --pattern "${{ matrix.core_pattern }}" \
             --dir core-download
 
@@ -410,11 +410,11 @@ jobs:
 
             The macOS build is codesigned and notarized — no Homebrew or library installs are needed. All required libraries are bundled inside the `.app`.
 
-            **If the app won't open** — if you see "app is damaged" or "cannot be opened", run this once in Terminal:
+            **If the app won't open, OR it opens but gets stuck on "Connecting to backend"** — both are caused by macOS quarantining the download (most common when you overwrite an existing copy instead of moving it via Finder). Symptoms include "app is damaged" / "cannot be opened", or the window hanging on the loading/Connecting screen. Run this once in Terminal, then reopen the app:
             ```bash
             xattr -cr "/Applications/XEQM GUI.app"
             ```
-            Then double-click again.
+            This clears the quarantine flag and is safe to run any time you update or reinstall.
 
             ---
 
