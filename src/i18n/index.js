@@ -9,7 +9,7 @@ const languages = [
   { name: "Spanish", code: "es", flag: "es" },
   { name: "Bahasa Indonesia", code: "id", flag: "id" },
   { name: "Portuguese", code: "pt-br", flag: "pt" },
-  { name: "Basa Jawa", code: "JV", flag: "id" }
+  { name: "Basa Jawa", code: "jv", flag: "id" }
 ];
 
 export { languages };
