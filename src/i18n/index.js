@@ -8,7 +8,8 @@ const languages = [
   { name: "French", code: "fr", flag: "fr" },
   { name: "Spanish", code: "es", flag: "es" },
   { name: "Bahasa Indonesia", code: "id", flag: "id" },
-  { name: "Portuguese", code: "pt-br", flag: "pt" }
+  { name: "Portuguese", code: "pt-br", flag: "pt" },
+  { name: "Basa Jawa", code: "jv", flag: "id" }
 ];
 
 export { languages };
