@@ -8,7 +8,7 @@ For documentation and support: **[t.me/XEQCommunity](https://t.me/XEQCommunity)*
 
 ## Downloads
 
-Grab the latest release from the [Releases page](https://github.com/EquilibriaHorizon/XEQMLabs-GUI/releases).
+Grab the latest release from the [Releases page](https://github.com/XEQMLabs/XEQMLabs-GUI/releases).
 
 | Platform | File |
 |----------|------|
@@ -138,16 +138,16 @@ Use the in-app **Wallet Backup Path** (Network Settings) to mirror your wallet f
 ### Setup
 
 ```bash
-git clone https://github.com/EquilibriaHorizon/XEQMLabs-GUI.git
+git clone https://github.com/XEQMLabs/XEQMLabs-GUI.git
 cd XEQMLabs-GUI
 npm install
 ```
 
 ### Daemon binaries
 
-The release workflow pulls binaries automatically from the [core repo's latest release](https://github.com/EquilibriaHorizon/equilibria-core/releases). For local development you'll need to populate `bin/` manually:
+The release workflow pulls binaries automatically from the [core repo release](https://github.com/XEQMLabs/xeqm-core/releases) pinned in the workflow (currently `core-v1.0.7`). For local development you'll need to populate `bin/` manually:
 
-1. Download the platform-appropriate archive from the [core releases](https://github.com/EquilibriaHorizon/equilibria-core/releases) (e.g. `XEQM-core-*-windows-x86_64-*.zip`)
+1. Download the platform-appropriate archive from the [core releases](https://github.com/XEQMLabs/xeqm-core/releases) (e.g. `XEQM-core-*-windows-x86_64-*.zip`)
 2. Extract it
 3. Copy `xeqm-d`, `xeqm-rpc`, `xeqm-wallet` (with `.exe` on Windows) into `bin/` at the repo root
 4. On macOS, also copy the `libs/` folder alongside the binaries
@@ -179,10 +179,10 @@ npm run ready   # Both
 
 The release workflow is triggered manually or by pushing a `v*` tag.
 
-1. Make sure the desired core binaries are published in the [core repo releases](https://github.com/EquilibriaHorizon/equilibria-core/releases)
+1. Make sure the desired core binaries are published in the [core repo releases](https://github.com/XEQMLabs/xeqm-core/releases)
 2. Go to **Actions → Release GUI Wallets → Run workflow**
-3. Enter the GUI version (e.g. `2.0.5`)
-4. Optionally pin a specific `core_release` tag (default: latest published core release)
+3. Enter the GUI version (e.g. `2.2.0`)
+4. Optionally pin a specific `core_release` tag (default: the tag pinned in the workflow, currently `core-v1.0.7`)
 5. Wait for all 3 platform jobs + the publish job to complete
 
 The workflow downloads the matching core archive at build time and bakes it into each installer — no binaries are committed to this repo.

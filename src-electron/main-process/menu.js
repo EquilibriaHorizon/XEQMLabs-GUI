@@ -34,7 +34,7 @@ let template = [
         label: "Learn More",
         click() {
           require("electron").shell.openExternal(
-            "https://github.com/DomXEQ/XEQMLabs-GUI"
+            "https://github.com/XEQMLabs/XEQMLabs-GUI"
           );
         }
       }

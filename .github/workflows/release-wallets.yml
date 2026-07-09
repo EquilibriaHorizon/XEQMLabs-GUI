@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       core_release:
-        description: "Core release tag to bundle (default: latest published)"
+        description: "Core release tag to bundle (default: core-v1.0.7)"
         required: false
         type: string
         default: ""
@@ -109,7 +109,7 @@ jobs:
           set -euo pipefail
           TAG="${{ inputs.core_release }}"
           if [ -z "$TAG" ]; then
-            TAG="$(gh release view --repo XEQMLabs/xeqm-core --json tagName --jq .tagName)"
+            TAG="core-v1.0.7"  # pinned for HF21; override via workflow_dispatch core_release input
           fi
           echo "Resolved core release tag: $TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -359,6 +359,10 @@ jobs:
             Official GUI wallet for **XEQMLabs (XEQM)**.
 
             For documentation and support: [t.me/XEQCommunity](https://t.me/XEQCommunity)
+
+            ## What's new
+
+            This release bundles **XEQM core v1.0.7 "Ragnarok"**, required for **Hard Fork 21** — weekly service node reward batching — activating at block **99,000** (~July 14, 2026 16:00 UTC). Update before the fork height to stay in sync with the network.
 
             ## Downloads
 

@@ -448,7 +448,7 @@ export class Backend {
   }
   // TODO: Update the GitHub releases URL below to the XEQM flagship wallet repo
   // once the release infrastructure is established.
-  // Example: "https://api.github.com/repos/DomXEQ/XEQMLabs-GUI/releases/latest"
+  // Example: "https://api.github.com/repos/XEQMLabs/XEQMLabs-GUI/releases/latest"
   async checkVersion() {
     this.send("set_update_required", false);
   }
